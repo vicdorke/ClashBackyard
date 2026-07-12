@@ -23,27 +23,34 @@ MihomoVPS.yaml
 
 
 部署步骤
-1. 克隆并安装脚本
+克隆并安装脚本
 
 git clone --branch master --depth 1 https://github.com/nelvko/clash-for-linux-install.git \
   && cd clash-for-linux-install \
   && bash install.sh
 
 安装过程中会提示你输入服务端的订阅地址。
-3. 关闭本机代理
+
+关闭本机代理：
 安装完成后,先关闭本机代理模式(避免影响后续调试):
-bashclashoff -e
-4. 定位安装目录
+
+clashoff -e
+定位安装目录：
+
 默认安装目录为 /root/clashctl,后续配置文件都在 /root/clashctl/resources 目录下。
-5. 覆盖 mixin.yaml
+
+覆盖 mixin.yaml
 用改好的 mixin.yaml 覆盖 /root/clashctl/resources/mixin.yaml。
-6. 准备证书目录
+
+准备证书目录
 新建证书文件夹,把你自己网站的 TLS 证书放进去:
 /root/clashctl/resources/certs/fullchain.pem
 /root/clashctl/resources/certs/privkey.pem
 
 💡 初次调试建议先用 Shadowsocks 这类不依赖证书的协议跑通,确认基础链路没问题后,再逐步启用需要 TLS 证书的协议(VLESS、Hysteria2 等)。
 
-6. 更新服务端配置
-bashclashsub update 1
+更新服务端配置
+
+clashsub update 1
+
 配置更新后即可生效。
