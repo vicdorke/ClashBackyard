@@ -1,43 +1,45 @@
-本项目基于以下脚本：
+Mihomo 服务端部署教程
+本项目基于开源脚本 clash-for-linux-install 搭建。
+原理简述
+该脚本运行时会自动将 mixin.yaml 与你自己的 mihomo 配置文件合并生成最终的 runtime.yaml,合并时如有冲突,以 mixin.yaml 为准。
+因此你需要做两件事:
 
-https://github.com/nelvko/clash-for-linux-install
+修改 mixin.yaml(主要是端口、密码等运行时配置)
+在你自己的 mihomo 配置文件末尾追加 listeners: 部分(服务端监听配置)
 
-先给两个样例，需要你自己托管在你的github等其他什么乱七八糟的地方。
-里面XXX自己改一下就能用了，这个脚本的原理是他自己有一个mixin.yaml会和你自己的mihomo配置文件合成成一个runtime.yaml文件运行，所以你需要修改mixin.yaml配置，和在你的mihomo配置文件底下加上listeners: 之后的服务端配置。
-
-初次使用你也可以用你自己的客户端文件加我的listeners: 配置改一下大概就能自己用了，只是可能不太顺手。
-
-要用面板什么的功能还是要改一下mixin文件，主要是端口和密码
+下面提供两个示例文件供参考:
 
 mixin.yaml
-
 MihomoVPS.yaml
 
-```
-git clone --branch master --depth 1 https://github.com/nelvko/clash-for-linux-install.git \
+请自行 fork 或托管到你自己的 GitHub(或其他任意地方),文件中所有 XXX 占位符替换成自己的实际值即可使用。
+
+💡 如果你已经有自己的客户端配置文件,也可以直接把示例里的 listeners: 部分复制过去、改一下参数,同样能用,只是配置风格可能不如示例顺手。
+
+
+💡 如果需要用到面板(Dashboard)等功能,记得同步修改 mixin.yaml 里的端口和密码。
+
+
+部署步骤
+1. 克隆并安装脚本
+bashgit clone --branch master --depth 1 https://github.com/nelvko/clash-for-linux-install.git \
   && cd clash-for-linux-install \
   && bash install.sh
-```
-
-然后输入你的服务端订阅地址之后
-
-关闭本机代理
-`clashoff -e`
-
-默认安装目录是  root/clashctl
-
-/root/clashctl/resources  此目录
-
-覆盖mixin.yaml
-
-这里新建一个证书目录，把你的网站证书tls放进来，初次运行可以先试试ss，这些不要证书的协议，能跑通再说。
-
-新建证书文件夹，tls
-
+安装过程中会提示你输入服务端的订阅地址。
+2. 关闭本机代理
+安装完成后,先关闭本机代理模式(避免影响后续调试):
+bashclashoff -e
+3. 定位安装目录
+默认安装目录为 /root/clashctl,后续配置文件都在 /root/clashctl/resources 目录下。
+4. 覆盖 mixin.yaml
+用改好的 mixin.yaml 覆盖 /root/clashctl/resources/mixin.yaml。
+5. 准备证书目录
+新建证书文件夹,把你自己网站的 TLS 证书放进去:
 /root/clashctl/resources/certs/fullchain.pem
-
 /root/clashctl/resources/certs/privkey.pem
 
-更新服务端配置
+💡 初次调试建议先用 Shadowsocks 这类不依赖证书的协议跑通,确认基础链路没问题后,再逐步启用需要 TLS 证书的协议(VLESS、Hysteria2 等)。
 
-clashsub update 1
+6. 更新服务端配置
+bashclashsub update 1
+配置更新后即可生效。
