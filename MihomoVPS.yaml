@@ -1,0 +1,426 @@
+# 用于下载订阅时指定 UA
+global-ua: clash.meta
+
+# 全局配置（运行时以 mixin.yaml 覆盖冲突项）
+port: 7890
+socks-port: 7891
+mixed-port: 7893
+ipv6: false
+allow-lan: true
+bind-address: "*"
+authentication:
+  - "root:XXXXXXXX"
+unified-delay: true
+tcp-concurrent: true
+log-level: warning
+
+geodata-mode: false
+geodata-loader: standard
+geo-auto-update: true
+geo-update-interval: 48
+geox-url:
+  geoip: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat"
+  geosite: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb"
+  asn: "https://github.com/xishang0128/geoip/releases/download/latest/GeoLite2-ASN.mmdb"
+
+# 控制面板
+external-controller: 0.0.0.0:7895
+external-controller-tls: 0.0.0.0:7896
+tls:
+  certificate: /root/clashctl/resources/certs/fullchain.pem
+  private-key: /root/clashctl/resources/certs/privkey.pem
+external-controller-cors:
+  allow-origins:
+    - "*"
+  allow-private-network: true
+secret: "XXXXXXXXXXXXXXX"
+external-ui: ui
+external-ui-url: "https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip"
+
+# 服务端不匹配进程
+find-process-mode: off
+global-client-fingerprint: chrome
+keep-alive-idle: 600
+keep-alive-interval: 30
+
+profile:
+  store-selected: true
+  store-fake-ip: false
+
+# 流量嗅探（mixin 会再覆盖一次）
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+
+# DNS 配置（最终以 mixin.yaml 为准）
+dns:
+  cache-algorithm: arc
+  enable: true
+  ipv6: false
+  prefer-h3: true
+  listen: 0.0.0.0:1053
+  enhanced-mode: redir-host
+  default-nameserver:
+    - 1.1.1.1
+  nameserver:
+    - https://doh.sb/dns-query
+  proxy-server-nameserver:
+    - https://doh.sb/dns-query
+  nameserver-policy:
+    "geosite:geolocation-!cn":
+      - https://doh.sb/dns-query
+
+proxy-providers:
+  NodeSafe:
+    type: http
+    url: https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    path: ./NodeSafe.yaml
+    interval: 3600
+    proxy: DIRECT
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+      timeout: 5000
+      lazy: true
+  NodeMore:
+    type: http
+    url: https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    path: ./NodeMore.yaml
+    interval: 3600
+    proxy: DIRECT
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+      timeout: 5000
+      lazy: true
+
+rule-providers:
+  ⚡️ 安全节点:
+    behavior: classical
+    interval: 86400
+    type: http
+    url: https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    path: ./ruleset/SAFE.yaml
+  🇬🇧 英国分流:
+    behavior: classical
+    interval: 86400
+    type: http
+    url: https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    path: ./ruleset/GB.yaml
+  🇩🇪 德国分流:
+    behavior: classical
+    interval: 86400
+    type: http
+    url: https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    path: ./ruleset/DE.yaml
+  ➰ 隐私保护:
+    behavior: classical
+    interval: 86400
+    type: http
+    url: https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    path: ./ruleset/CNPRIVATE.yaml
+  ▶️ VIDEO:
+    behavior: classical
+    interval: 86400
+    type: http
+    url: https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    path: ./ruleset/VIDEO.yaml
+
+proxies:
+  # - name: ⛅️ CloudFlareNative
+  #   type: wireguard
+  #   server: engage.cloudflareclient.com
+  #   port: 2408
+  #   ip: 172.16.0.2
+  #   ipv6: XXXXXXXXXXXXXXXXXXXXXXXX
+  #   private-key: XXXXXXXXXXXXXXXX
+  #   public-key:XXXXXXXXXXXXXXXXXXXX
+  #   udp: true
+
+proxy-groups:
+  - name: 🚀 节点选择
+    type: select
+    udp: true
+    include-all-proxies: true
+    use:
+      - NodeSafe
+      - NodeMore
+    proxies:
+      - 🎯 全球直连
+      - ♻️ 自动回退
+      - ⚖️ 备用负载
+      - ❇️ 负载均衡
+      - 🔄 自动选择
+
+  - name: ⚡️ 安全节点
+    type: select
+    udp: true
+    use:
+      - NodeSafe
+    proxies:
+      - 🎯 全球直连
+      - 🚀 节点选择
+      - ♻️ 自动回退
+      - 🔄 自动选择
+    include-all-proxies: true
+
+  - name: 🇬🇧 英国分流
+    type: select
+    udp: true
+    use:
+      - NodeSafe
+      - NodeMore
+    filter: "🇬🇧"
+    include-all-proxies: true
+
+  - name: 🇩🇪 德国分流
+    type: select
+    udp: true
+    use:
+      - NodeSafe
+      - NodeMore
+    filter: "🇩🇪"
+    include-all-proxies: true
+
+  - name: ▶️ VIDEO
+    type: select
+    udp: true
+    proxies:
+      - 🚀 节点选择
+      - ♻️ 自动回退
+      - ⚖️ 备用负载
+    include-all: true
+
+  - name: 🎯 全球直连
+    type: select
+    use:
+      - NodeSafe
+    proxies:
+      - DIRECT
+      - REJECT
+    hidden: true
+
+  - name: ➰ 隐私保护
+    type: select
+    udp: true
+    proxies:
+      - 🎯 全球直连
+      - 🚀 节点选择
+      - ♻️ 自动回退
+      - REJECT
+    include-all: true
+
+  - name: 🐟 漏网之鱼
+    type: select
+    udp: true
+    proxies:
+      - 🚀 节点选择
+      - ♻️ 自动回退
+      - 🎯 全球直连
+    use:
+      - NodeMore
+
+  - name: ♻️ 自动回退
+    type: fallback
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    timeout: 3000
+    use:
+      - NodeSafe
+    hidden: true
+    lazy: true
+
+  - name: 🔄 自动选择
+    type: url-test
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    timeout: 3000
+    use:
+      - NodeMore
+    hidden: true
+    lazy: true
+
+  - name: ❇️ 负载均衡
+    type: load-balance
+    exclude-filter: "(?i)5x|🇭🇰|Emby|VPS"
+    use:
+      - NodeSafe
+    url: https://www.gstatic.com/generate_204
+    interval: 150
+    tolerance: 50
+    timeout: 3000
+    hidden: true
+    lazy: true
+    strategy: consistent-hashing
+
+  - name: ⚖️ 备用负载
+    type: load-balance
+    exclude-filter: "(?i)5x|Emby"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    timeout: 3000
+    use:
+      - NodeMore
+    strategy: round-robin
+    hidden: true
+    lazy: true
+
+rules:
+  # 国家 VoWiFi 优先
+  - RULE-SET,🇩🇪 德国分流,🇩🇪 德国分流
+  - RULE-SET,🇬🇧 英国分流,🇬🇧 英国分流
+  - RULE-SET,⚡️ 安全节点,⚡️ 安全节点
+  - RULE-SET,➰ 隐私保护,➰ 隐私保护
+  - RULE-SET,▶️ VIDEO,▶️ VIDEO
+  - IP-CIDR,127.0.0.0/8,🎯 全球直连,no-resolve
+  - IP-CIDR,10.0.0.0/8,🎯 全球直连,no-resolve
+  - IP-CIDR,172.16.0.0/12,🎯 全球直连,no-resolve
+  - IP-CIDR,192.168.0.0/16,🎯 全球直连,no-resolve
+  - IP-CIDR,169.254.0.0/16,🎯 全球直连,no-resolve
+  - IP-CIDR,224.0.0.0/4,🎯 全球直连,no-resolve
+  - IP-CIDR6,::1/128,🎯 全球直连,no-resolve
+  - IP-CIDR6,fc00::/7,🎯 全球直连,no-resolve
+  - IP-CIDR6,fe80::/10,🎯 全球直连,no-resolve
+  - GEOIP,CN,➰ 隐私保护,no-resolve
+  - MATCH,🐟 漏网之鱼
+
+listeners:
+  - name: shadowsocks-7897
+    type: shadowsocks
+    port: 7897
+    listen: 0.0.0.0
+    password: XXXXXXXXXXX
+    cipher: aes-128-gcm
+  - name: vless-reality-7898
+    type: vless
+    port: 7898
+    listen: 0.0.0.0
+    users:
+      - username: root
+        uuid: XXXXXXXXXXX
+        flow: xtls-rprx-vision
+    reality-config:
+      dest: XXXXXXXXXXX:443
+      private-key: XXXXXXXXXXXXXXXXXXXXXXX
+      short-id:
+        - XXXXXXXXX
+      server-names:
+        - XXXXXXXXXXX
+  - name: vless-decryption-7899
+    type: vless
+    port: 7899
+    listen: 0.0.0.0
+    users:
+      - username: root
+        uuid: XXXXXXXXXXX
+        flow: xtls-rprx-vision
+    decryption: "XXXXXXXXXXX"
+  - name: anytls-7900
+    type: anytls
+    port: 7900
+    listen: 0.0.0.0
+    users:
+      root: XXXXXXXXXXX
+    certificate: /root/clashctl/resources/certs/fullchain.pem
+    private-key: /root/clashctl/resources/certs/privkey.pem
+    padding-scheme: |
+      stop=8
+      0=30-30
+      1=100-400
+      2=400-500,c,500-1000,c,500-1000,c,500-1000,c,500-1000
+      3=9-9,500-1000
+      4=500-1000
+      5=500-1000
+      6=500-1000
+      7=500-1000
+  - name: hysteria2-7901
+    type: hysteria2
+    port: 7901
+    listen: 0.0.0.0
+    users:
+      root: XXXXXXXXXXX
+    certificate: /root/clashctl/resources/certs/fullchain.pem
+    private-key: /root/clashctl/resources/certs/privkey.pem
+    alpn:
+      - h3
+    ignore-client-bandwidth: false
+  - name: vless-ws-7902
+    type: vless
+    port: 7902
+    listen: 0.0.0.0
+    users:
+      - username: root
+        uuid: XXXXXXXXXXX
+    ws-path: "/XXXXXX"  # 如果不为空则开启 ws 传输层
+    allow-insecure: true
+  - name: TrustTunnel-7903
+    type: trusttunnel
+    port: 7903
+    listen: 0.0.0.0
+    # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
+    # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+    users:
+      - username: root
+        password: XXXXXXXXXXX
+    certificate: /root/clashctl/resources/certs/fullchain.pem
+    private-key: /root/clashctl/resources/certs/privkey.pem
+    network: ["tcp", "udp"] # http2+http3
+    congestion-controller: bbr
+  - name: vless-xhttp-7904
+    type: vless
+    port: 7904
+    listen: 0.0.0.0
+    users:
+      - username: root
+        uuid: XXXXXXXXXXX
+    decryption: "XXXXXXXXXXX"
+    xhttp-config:
+      path: "/XXXX"
+      mode: auto
+  - name: hysteria2-realm-7905
+    type: hysteria2-realm
+    port: 7905
+    listen: 0.0.0.0
+    token: "XXXXXXXXXXXXXX"
+    max-realms: XXXX
+    max-realms-per-ip: 4
+    trusted-proxy-header: ""
+    realm-name-pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+    certificate: /root/clashctl/resources/certs/fullchain.pem
+    private-key: /root/clashctl/resources/certs/privkey.pem
+    alpn: ["h2", "http/1.1"]
+  - name: mixed-in
+    type: mixed
+    port: 7907
+    listen: 0.0.0.0
+    udp: true
+    users:
+      - username: root
+        password: XXXXXXX
+
+  - name: snell-7906
+    type: snell
+    listen: 0.0.0.0
+    port: 7906
+    psk: XXXXXXXXXXX     # 建议用 openssl rand -base64 16 生成
+    version: 5               
+    udp: true                   # UDP over TCP tunnel
+    obfs-opts:
+      mode: tls                 # http 或 tls
+      host: XXXXXXXXXXX        # 伪装的域名，客户端也要填同一个

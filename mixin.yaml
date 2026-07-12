@@ -1,0 +1,110 @@
+# ============================================================
+# mixin.yaml - 服务端运行时覆盖层
+# 合成规则：runtime = MihomoVPS.yaml + mixin.yaml
+# 冲突项以本文件为准；脚本也会写入关键端口/证书/prepend 规则
+# ============================================================
+
+# 端口配置 (脚本可能改写)
+port: 7890
+socks-port: 7891
+mixed-port: 7893
+allow-lan: true
+bind-address: "*"
+authentication:
+  - "root:XXXXXXXX"
+
+# 控制面板
+external-controller: "0.0.0.0:7895"
+external-controller-tls: "0.0.0.0:7896"
+tls:
+  certificate: /root/clashctl/resources/certs/fullchain.pem
+  private-key: /root/clashctl/resources/certs/privkey.pem
+external-controller-cors:
+  allow-origins:
+    - "*"
+  allow-private-network: true
+external-ui: ui
+external-ui-url: "https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip"
+secret: "XXXXXXXXXXXX"
+
+find-process-mode: "off"
+log-level: warning
+unified-delay: true
+tcp-concurrent: true
+
+# 策略组选择缓存 (覆盖基础配置的 store-fake-ip)
+profile:
+  store-selected: true
+  store-fake-ip: false
+
+# 流量嗅探 (覆盖基础配置的客户端域名)
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  force-domain: []
+  skip-domain: []
+
+# prepend/append/override/inject 规则（脚本常用注入点，勿删结构）
+rules:
+  prepend:
+    - DOMAIN,api64.ipify.org,DIRECT # 用于 clashui 获取真实公网 IP
+  append:
+proxies:
+  prepend:
+  append:
+  override:
+proxy-groups:
+  prepend:
+  append:
+  override:
+  inject:
+
+# TUN 配置 - 服务端不需要，全部关闭
+tun:
+  enable: false
+  stack: system
+  auto-route: false
+  auto-redir: false
+  auto-redirect: false
+  auto-detect-interface: false
+  dns-hijack: []
+  strict-route: false
+
+# DNS 配置 - 去掉所有中国 DNS，使用海外 DNS
+# 显式覆盖所有 key 以防深度合并残留
+dns:
+  cache-algorithm: arc
+  enable: true
+  ipv6: true
+  prefer-h3: true
+  listen: 0.0.0.0:1053
+  enhanced-mode: redir-host
+  fake-ip-range: 198.18.0.0/16
+  fake-ip-filter: []
+  fake-ip-filter-mode: blacklist
+  use-hosts: true
+  use-system-hosts: false
+  default-nameserver:
+    - 1.1.1.1
+    - 8.8.8.8
+  nameserver:
+    - https://doh.sb/dns-query
+  proxy-server-nameserver:
+    - https://doh.sb/dns-query
+  direct-nameserver:
+    - https://doh.sb/dns-query
+  nameserver-policy:
+    "geosite:cn,private,apple":
+      - https://doh.sb/dns-query
+    "geosite:geolocation-!cn":
+      - https://doh.sb/dns-query
