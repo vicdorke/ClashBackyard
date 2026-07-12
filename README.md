@@ -1,4 +1,5 @@
 Mihomo 服务端部署教程
+
 本项目基于开源脚本 clash-for-linux-install 搭建。
 原理简述
 该脚本运行时会自动将 mixin.yaml 与你自己的 mihomo 配置文件合并生成最终的 runtime.yaml,合并时如有冲突,以 mixin.yaml 为准。
