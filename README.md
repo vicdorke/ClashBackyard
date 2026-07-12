@@ -11,9 +11,9 @@ Mihomo 服务端部署教程
 下面提供两个示例文件供参考:
 
 mixin.yaml
-MihomoVPS.yaml
 
-请自行 fork 或托管到你自己的 GitHub(或其他任意地方),文件中所有 XXX 占位符替换成自己的实际值即可使用。
+MihomoVPS.yaml
+请自行托管自己的MihomoVPS.yaml到你自己的GitHub(或其他任意地方),文件中所有 XXX 占位符替换成自己的实际值即可使用。
 
 💡 如果你已经有自己的客户端配置文件,也可以直接把示例里的 listeners: 部分复制过去、改一下参数,同样能用,只是配置风格可能不如示例顺手。
 
